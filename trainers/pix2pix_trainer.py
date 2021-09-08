@@ -39,9 +39,9 @@ class Pix2PixTrainer():
         self.g_losses = g_losses
         self.generated = generated
 
-    def run_discriminator_one_step(self, data):
+    def run_discriminator_one_step(self, data, only_fake=False):
         self.optimizer_D.zero_grad()
-        d_losses = self.pix2pix_model(data, mode='discriminator')
+        d_losses = self.pix2pix_model(data, mode='discriminator', only_fake=only_fake)
         d_loss = sum(d_losses.values()).mean()
         d_loss.backward()
         self.optimizer_D.step()

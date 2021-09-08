@@ -38,7 +38,7 @@ class Pix2PixModel(torch.nn.Module):
     # of deep networks. We used this approach since DataParallel module
     # can't parallelize custom functions, we branch to different
     # routines based on |mode|.
-    def forward(self, data, mode):
+    def forward(self, data, mode, only_fake=False):
         input_semantics, real_image = self.preprocess_input(data)
 
         if mode == 'generator':
@@ -47,7 +47,7 @@ class Pix2PixModel(torch.nn.Module):
             return g_loss, generated
         elif mode == 'discriminator':
             d_loss = self.compute_discriminator_loss(
-                input_semantics, real_image)
+                input_semantics, real_image, only_fake)
             return d_loss
         elif mode == 'encode_only':
             z, mu, logvar = self.encode_z(real_image)
@@ -162,7 +162,7 @@ class Pix2PixModel(torch.nn.Module):
 
         return G_losses, fake_image
 
-    def compute_discriminator_loss(self, input_semantics, real_image):
+    def compute_discriminator_loss(self, input_semantics, real_image, only_fake):
         D_losses = {}
         with torch.no_grad():
             fake_image, _ = self.generate_fake(input_semantics, real_image)
@@ -174,8 +174,9 @@ class Pix2PixModel(torch.nn.Module):
 
         D_losses['D_Fake'] = self.criterionGAN(pred_fake, False,
                                                for_discriminator=True)
-        D_losses['D_real'] = self.criterionGAN(pred_real, True,
-                                               for_discriminator=True)
+        if not only_fake:
+            D_losses['D_real'] = self.criterionGAN(pred_real, True,
+                                                   for_discriminator=True)
 
         return D_losses
 

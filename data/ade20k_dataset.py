@@ -28,13 +28,13 @@ class ADE20KDataset(Pix2pixDataset):
 
     def get_paths(self, opt):
         root = opt.dataroot
-        phase = 'val' if opt.phase == 'test' else 'train'
+        phase = 'validation' if opt.phase == 'test' else 'training'
 
         all_images = make_dataset(root, recursive=True, read_cache=False, write_cache=False)
         image_paths = []
         label_paths = []
         for p in all_images:
-            if '_%s_' % phase not in p:
+            if phase not in p:
                 continue
             if p.endswith('.jpg'):
                 image_paths.append(p)
