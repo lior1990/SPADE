@@ -90,6 +90,8 @@ encoder.eval()
 for i, img in enumerate(dataloader):
     print('process image... %s' % i)
     with torch.no_grad():
+        if len(opt.gpu_ids) > 0:
+            img = img.cuda()
         label_tensor = encoder(img)
         label_tensor_one_hot = vector_quantizer(label_tensor)
         data_i = {'label': label_tensor_one_hot,
