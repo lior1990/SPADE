@@ -39,7 +39,7 @@ class Pix2PixModel(torch.nn.Module):
     # can't parallelize custom functions, we branch to different
     # routines based on |mode|.
     def forward(self, data, mode, only_fake=False):
-        input_semantics, real_image = self.preprocess_input(data)
+        input_semantics, real_image = self.preprocess_input(data, mode)
 
         if mode == 'generator':
             g_loss, generated = self.compute_generator_loss(
@@ -55,6 +55,9 @@ class Pix2PixModel(torch.nn.Module):
         elif mode == 'inference':
             with torch.no_grad():
                 fake_image, _ = self.generate_fake(input_semantics, real_image)
+            return fake_image
+        elif mode == 'eval':
+            fake_image, _ = self.generate_fake(input_semantics, real_image)
             return fake_image
         else:
             raise ValueError("|mode| is invalid")
@@ -105,7 +108,7 @@ class Pix2PixModel(torch.nn.Module):
     # transforming the label map to one-hot encoding
     # |data|: dictionary of the input data
 
-    def preprocess_input(self, data):
+    def preprocess_input(self, data, mode):
         # move to GPU and change data types
         data['label'] = data['label'].long()
         if self.use_gpu():
@@ -113,13 +116,16 @@ class Pix2PixModel(torch.nn.Module):
             data['instance'] = data['instance'].cuda()
             data['image'] = data['image'].cuda()
 
-        # create one-hot label map
-        label_map = data['label']
-        bs, _, h, w = label_map.size()
-        nc = self.opt.label_nc + 1 if self.opt.contain_dontcare_label \
-            else self.opt.label_nc
-        input_label = self.FloatTensor(bs, nc, h, w).zero_()
-        input_semantics = input_label.scatter_(1, label_map, 1.0)
+        if mode != "eval":
+            # create one-hot label map
+            label_map = data['label']
+            bs, _, h, w = label_map.size()
+            nc = self.opt.label_nc + 1 if self.opt.contain_dontcare_label \
+                else self.opt.label_nc
+            input_label = self.FloatTensor(bs, nc, h, w).zero_()
+            input_semantics = input_label.scatter_(1, label_map, 1.0)
+        else:
+            input_semantics = data['label'].float()
 
         # concatenate instance map if it exists
         if not self.opt.no_instance:

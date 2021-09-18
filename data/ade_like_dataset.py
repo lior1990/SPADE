@@ -19,8 +19,8 @@ class ADELikeDataset(Pix2pixDataset):
             parser.set_defaults(load_size=256)
         parser.set_defaults(crop_size=256)
         parser.set_defaults(display_winsize=256)
-        parser.set_defaults(label_nc=45)
-        parser.set_defaults(contain_dontcare_label=True)
+        parser.set_defaults(label_nc=44)
+        parser.set_defaults(contain_dontcare_label=False)
         parser.set_defaults(cache_filelist_read=False)
         parser.set_defaults(cache_filelist_write=False)
         parser.set_defaults(no_instance=True)
@@ -48,6 +48,4 @@ class ADELikeDataset(Pix2pixDataset):
     # In ADE20k, 'unknown' label is of value 0.
     # Change the 'unknown' label to the last label to match other datasets.
     def postprocess(self, input_dict):
-        label = input_dict['label']
-        label = label - 1
-        label[label == -1] = self.opt.label_nc
+        input_dict['label'] -= 1
