@@ -7,7 +7,7 @@ from data.pix2pix_dataset import Pix2pixDataset
 from data.image_folder import make_dataset
 
 
-class ADE20KDataset(Pix2pixDataset):
+class ADELikeDataset(Pix2pixDataset):
 
     @staticmethod
     def modify_commandline_options(parser, is_train):
