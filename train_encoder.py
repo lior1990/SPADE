@@ -6,6 +6,7 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 
 from data.folder_dataset import FolderDataset
+from models.networks import VGGLoss
 from models.networks.quantizer import VectorQuantizer
 from models.pix2pix_model import Pix2PixModel
 from options.train_encoder_options import TrainEncoderOptions
@@ -55,6 +56,8 @@ if opt.loss == "l1":
     criterion = torch.nn.L1Loss()
 elif opt.loss == "l2":
     criterion = torch.nn.MSELoss()
+elif opt.loss == "vgg":
+    criterion = VGGLoss(opt.gpu_ids)
 else:
     raise NotImplementedError(opt.loss)
 
