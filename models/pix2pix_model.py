@@ -110,7 +110,9 @@ class Pix2PixModel(torch.nn.Module):
 
     def preprocess_input(self, data, mode):
         # move to GPU and change data types
-        data['label'] = data['label'].long()
+        if mode != "eval":
+            data['label'] = data['label'].long()
+
         if self.use_gpu():
             data['label'] = data['label'].cuda()
             #data['instance'] = data['instance'].cuda()
@@ -125,7 +127,7 @@ class Pix2PixModel(torch.nn.Module):
             input_label = self.FloatTensor(bs, nc, h, w).zero_()
             input_semantics = input_label.scatter_(1, label_map, 1.0)
         else:
-            input_semantics = data['label'].float()
+            input_semantics = data['label']
 
         # concatenate instance map if it exists
         if not self.opt.no_instance:

@@ -63,8 +63,7 @@ n_epochs = opt.niter
 if len(opt.gpu_ids) > 0:
     encoder.cuda()
 
-# test
-for epoch in enumerate(range(n_epochs)):
+for epoch in range(n_epochs):
     for i, img in enumerate(dataloader):
         if len(opt.gpu_ids) > 0:
             img = img.cuda()
@@ -85,6 +84,8 @@ for epoch in enumerate(range(n_epochs)):
         loss.backward()
         optimizer.step()
 
+        print(f"loss: {loss.item()}")
+
 encoder.eval()
 
 for i, img in enumerate(dataloader):
@@ -102,9 +103,9 @@ for i, img in enumerate(dataloader):
         generated = model(data_i, mode='eval')
 
         for b in range(generated.shape[0]):
-            print('process image... %s' % b)
+            print(f'process image {i} {b}')
             visuals = OrderedDict([('input_label', data_i['label'][b]),
                                    ('synthesized_image', generated[b])])
-            visualizer.save_images(webpage, visuals, f"{b}.png")
+            visualizer.save_images(webpage, visuals, f"{i}_{b}.png")
 
 webpage.save()
