@@ -6,6 +6,7 @@ Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses
 import torch
 import models.networks as networks
 import util.util as util
+import torch.nn.functional as F
 
 
 class Pix2PixModel(torch.nn.Module):
@@ -31,6 +32,8 @@ class Pix2PixModel(torch.nn.Module):
             self.criterionFeat = torch.nn.L1Loss()
             if not opt.no_vgg_loss:
                 self.criterionVGG = networks.VGGLoss(self.opt.gpu_ids)
+            if not opt.no_labelmix:
+                self.criterionLabelMix = torch.nn.MSELoss()
             if opt.use_vae:
                 self.KLDLoss = networks.KLDLoss()
 
@@ -186,7 +189,34 @@ class Pix2PixModel(torch.nn.Module):
             D_losses['D_real'] = self.criterionGAN(pred_real, True,
                                                    for_discriminator=True)
 
+        if not self.opt.no_labelmix:
+            mixed_inp, mask = self._generate_labelmix(input_semantics, fake_image, real_image)
+            output_D_mixed = self.netD(torch.cat([input_semantics, mixed_inp], dim=1))
+            label_mix_loss = 0
+            for i in range(len(output_D_mixed)):
+                curr_pred_real = pred_real[i][-1]
+                curr_pred_fake = pred_fake[i][-1]
+                curr_pred_mixed = output_D_mixed[i][-1]
+                d_map_shape = curr_pred_mixed[-1].shape
+                resized_mask = F.interpolate(mask, size=(d_map_shape[-1], d_map_shape[-2]), mode="nearest")
+                label_mix_loss += self._loss_labelmix(resized_mask, curr_pred_mixed, curr_pred_fake, curr_pred_real)
+            D_losses["D_labelmix"] = self.opt.lambda_labelmix * label_mix_loss
+
         return D_losses
+
+    def _loss_labelmix(self, mask, output_D_mixed, output_D_fake, output_D_real):
+        mixed_D_output = mask*output_D_real+(1-mask)*output_D_fake
+        return self.criterionLabelMix(mixed_D_output, output_D_mixed)
+
+    @staticmethod
+    def _generate_labelmix(label, fake_image, real_image):
+        target_map = torch.argmax(label, dim=1, keepdim=True)  # restore from one-hot encoding to numbers
+        all_classes = torch.unique(target_map)
+        for c in all_classes:
+            target_map[target_map == c] = torch.randint(0, 2, (1,))  # convert target map to a (random) binary mask
+        target_map = target_map.float()
+        mixed_image = target_map * real_image + (1 - target_map) * fake_image
+        return mixed_image, target_map
 
     def encode_z(self, real_image):
         mu, logvar = self.netE(real_image)
