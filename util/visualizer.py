@@ -6,6 +6,8 @@ Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses
 import os
 import ntpath
 import time
+from typing import List
+
 from . import util
 from . import html
 import scipy.misc
@@ -136,7 +138,7 @@ class Visualizer():
         return visuals
 
     # save image to the disk
-    def save_images(self, webpage, visuals, image_path):        
+    def save_images(self, webpage, visuals, image_path: List[str]):
         visuals = self.convert_visuals_to_numpy(visuals)        
         
         image_dir = webpage.get_image_dir()

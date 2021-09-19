@@ -84,7 +84,7 @@ for epoch in range(n_epochs):
         loss.backward()
         optimizer.step()
 
-        print(f"loss: {loss.item()}")
+    print(f"Epoch {epoch}, Loss: {loss.item()}")
 
 encoder.eval()
 
@@ -106,6 +106,6 @@ for i, img in enumerate(dataloader):
             print(f'process image {i} {b}')
             visuals = OrderedDict([('input_label', data_i['label'][b]),
                                    ('synthesized_image', generated[b])])
-            visualizer.save_images(webpage, visuals, f"{i}_{b}.png")
+            visualizer.save_images(webpage, visuals, [f"{i}_{b}.png"])
 
 webpage.save()
