@@ -11,7 +11,9 @@ class TrainEncoderOptions(TestOptions):
         TestOptions.initialize(self, parser)
         parser.add_argument('--path', type=str, required=True)
         parser.add_argument('--niter', type=int, default=100)
-        parser.add_argument('--loss', type=str, default="l1", help="l1/l2")
+        parser.add_argument('--loss', type=str, default="l1", help="l1/l2/vgg")
+        parser.add_argument('--optimizer', type=str, default="adam", help='adam/sgd')
+        parser.add_argument('--lr', type=float, default=0.001, help='initial learning rate for optimizer')
 
         parser.set_defaults(dataset_mode="ade_like")
         self.isTrain = False
