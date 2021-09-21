@@ -4,9 +4,14 @@ Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses
 """
 
 import sys
+import numpy as np
 from collections import OrderedDict
+
+import torch
+
 from options.train_options import TrainOptions
 import data
+from util.cutmix import rand_bbox
 from util.iter_counter import IterationCounter
 from util.visualizer import Visualizer
 from trainers.pix2pix_trainer import Pix2PixTrainer
@@ -34,6 +39,15 @@ for epoch in iter_counter.training_epochs():
     iter_counter.record_epoch_start(epoch)
     for i, data_i in enumerate(dataloader, start=iter_counter.epoch_iter):
         iter_counter.record_one_iteration()
+
+        for _ in range(opt.n_times_cutmix):
+            lam = np.random.uniform()
+            size = data_i["image"].size()
+            bbx1, bby1, bbx2, bby2 = rand_bbox(size, lam)
+            batch_index_permutation = torch.randperm(size[0])
+
+            data_i["image"][:, :, bbx1:bbx2, bby1:bby2] = data_i["image"][batch_index_permutation, :, bbx1:bbx2, bby1:bby2]
+            data_i["label"][:, :, bbx1:bbx2, bby1:bby2] = data_i["label"][batch_index_permutation, :, bbx1:bbx2, bby1:bby2]
 
         # Training
         # train generator
