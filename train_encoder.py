@@ -73,7 +73,7 @@ for epoch in range(n_epochs):
             img = img.cuda()
 
         label_tensor = encoder(img)
-        label_tensor_one_hot = vector_quantizer(label_tensor)
+        label_tensor_one_hot, _ = vector_quantizer(label_tensor)
 
         data_i = {'label': label_tensor_one_hot,
                   'instance': 0,
@@ -98,7 +98,7 @@ for i, img in enumerate(dataloader):
         if len(opt.gpu_ids) > 0:
             img = img.cuda()
         label_tensor = encoder(img)
-        label_tensor_one_hot = vector_quantizer(label_tensor)
+        label_tensor_one_hot, min_encoding_indices = vector_quantizer(label_tensor)
         data_i = {'label': label_tensor_one_hot,
                   'instance': 0,
                   'image': img,
@@ -108,7 +108,7 @@ for i, img in enumerate(dataloader):
 
         for b in range(generated.shape[0]):
             print(f'process image {i} {b}')
-            print(f"labels for image {i}_{b} are: {np.unique(label_tensor_one_hot[b].cpu().numpy().flatten())}")
+            print(f"labels for image {i}_{b} are: {torch.unique(min_encoding_indices)}")
             visuals = OrderedDict([('input_label', data_i['label'][b]),
                                    ('synthesized_image', generated[b])])
             visualizer.save_images(webpage, visuals, [f"{i}_{b}.png"])

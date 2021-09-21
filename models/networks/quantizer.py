@@ -49,7 +49,7 @@ class VectorQuantizer(nn.Module):
         # reshape back to match original input shape
         z_q = z_q.permute(0, 3, 1, 2).contiguous()
 
-        return z_q
+        return z_q, min_encoding_indices
 
     def find_closest_encodings_indices(self, z):
         z_flattened = z.view(-1, self.n)
