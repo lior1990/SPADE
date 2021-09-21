@@ -76,7 +76,7 @@ for epoch in iter_counter.training_epochs():
             trainer.save('latest')
             iter_counter.record_current_iter()
 
-    if epoch % opt.eval_epoch_freq == 0 or True:
+    if epoch % opt.eval_epoch_freq == 0:
         trainer.eval(eval_dataloader, visualizer, epoch, iter_counter.total_steps_so_far)
 
     trainer.update_learning_rate(epoch)
