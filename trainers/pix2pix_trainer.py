@@ -2,6 +2,7 @@
 Copyright (C) 2019 NVIDIA Corporation.  All rights reserved.
 Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
 """
+from collections import OrderedDict
 
 from models.networks.sync_batchnorm import DataParallelWithCallback
 from models.pix2pix_model import Pix2PixModel
@@ -84,3 +85,19 @@ class Pix2PixTrainer():
                 param_group['lr'] = new_lr_G
             print('update learning rate: %f -> %f' % (self.old_lr, new_lr))
             self.old_lr = new_lr
+
+    def eval(self, eval_dataloader, visualizer, epoch, total_steps_so_far):
+        self.pix2pix_model.eval()
+
+        total_index = 0
+        for i, data_i in enumerate(eval_dataloader):
+            generated = self.pix2pix_model(data_i, mode='inference')
+
+            for b in range(generated.shape[0]):
+                visuals = OrderedDict([('input_label', data_i['label']),
+                                       ('synthesized_image', generated),
+                                       ('real_image', data_i['image'])])
+                visualizer.display_current_results(visuals, epoch, total_steps_so_far, eval_index=total_index)
+                total_index += 1
+
+        self.pix2pix_model.train()

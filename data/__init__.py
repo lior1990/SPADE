@@ -52,3 +52,22 @@ def create_dataloader(opt):
         drop_last=opt.isTrain
     )
     return dataloader
+
+
+def create_eval_dataloader(opt):
+    dataset = find_dataset_using_name(opt.dataset_mode)
+    instance = dataset()
+    orig_phase = opt.phase
+    opt.phase = "test"
+    instance.initialize(opt)
+    opt.phase = orig_phase
+    print("eval dataset [%s] of size %d was created" %
+          (type(instance).__name__, len(instance)))
+    dataloader = torch.utils.data.DataLoader(
+        instance,
+        batch_size=1,
+        shuffle=not opt.serial_batches,
+        num_workers=int(opt.nThreads),
+        drop_last=False,
+    )
+    return dataloader

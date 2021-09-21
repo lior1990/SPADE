@@ -6,7 +6,7 @@ Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses
 import os
 import ntpath
 import time
-from typing import List
+from typing import List, Optional
 
 from . import util
 from . import html
@@ -41,7 +41,7 @@ class Visualizer():
                 log_file.write('================ Training Loss (%s) ================\n' % now)
 
     # |visuals|: dictionary of images to display or save
-    def display_current_results(self, visuals, epoch, step):
+    def display_current_results(self, visuals, epoch, step, eval_index: "Optional[int]"=None):
 
         ## convert tensors to numpy arrays
         visuals = self.convert_visuals_to_numpy(visuals)
@@ -70,10 +70,16 @@ class Visualizer():
             for label, image_numpy in visuals.items():
                 if isinstance(image_numpy, list):
                     for i in range(len(image_numpy)):
-                        img_path = os.path.join(self.img_dir, 'epoch%.3d_iter%.3d_%s_%d.png' % (epoch, step, label, i))
+                        if eval_index is None:
+                            img_path = os.path.join(self.img_dir, 'epoch%.3d_iter%.3d_%s_%d.png' % (epoch, step, label, i))
+                        else:
+                            img_path = os.path.join(self.img_dir, 'eval_epoch%.3d_iter%.3d_%s_%d.png' % (epoch, step, label, i))
                         util.save_image(image_numpy[i], img_path)
                 else:
-                    img_path = os.path.join(self.img_dir, 'epoch%.3d_iter%.3d_%s.png' % (epoch, step, label))
+                    if eval_index is None:
+                        img_path = os.path.join(self.img_dir, 'epoch%.3d_iter%.3d_%s.png' % (epoch, step, label))
+                    else:
+                        img_path = os.path.join(self.img_dir, 'eval_epoch%.3d_iter%.3d_%d_%s.png' % (epoch, step, eval_index, label))
                     if len(image_numpy.shape) >= 4:
                         image_numpy = image_numpy[0]                    
                     util.save_image(image_numpy, img_path)
@@ -89,12 +95,18 @@ class Visualizer():
                 for label, image_numpy in visuals.items():
                     if isinstance(image_numpy, list):
                         for i in range(len(image_numpy)):
-                            img_path = 'epoch%.3d_iter%.3d_%s_%d.png' % (n, step, label, i)
+                            if eval_index is None:
+                                img_path = 'epoch%.3d_iter%.3d_%s_%d.png' % (n, step, label, i)
+                            else:
+                                img_path = 'eval_epoch%.3d_iter%.3d_%s_%d.png' % (n, step, label, i)
                             ims.append(img_path)
                             txts.append(label+str(i))
                             links.append(img_path)
                     else:
-                        img_path = 'epoch%.3d_iter%.3d_%s.png' % (n, step, label)
+                        if eval_index is None:
+                            img_path = 'epoch%.3d_iter%.3d_%s.png' % (n, step, label)
+                        else:
+                            img_path = 'eval_epoch%.3d_iter%.3d_%d_%s.png' % (n, step, eval_index, label)
                         ims.append(img_path)
                         txts.append(label)
                         links.append(img_path)
