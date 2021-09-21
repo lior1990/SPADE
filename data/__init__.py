@@ -65,7 +65,7 @@ def create_eval_dataloader(opt):
           (type(instance).__name__, len(instance)))
     dataloader = torch.utils.data.DataLoader(
         instance,
-        batch_size=1,
+        batch_size=max(1, len(opt.gpu_ids)),
         shuffle=not opt.serial_batches,
         num_workers=int(opt.nThreads),
         drop_last=False,
