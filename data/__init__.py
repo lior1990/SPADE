@@ -68,6 +68,6 @@ def create_eval_dataloader(opt):
         batch_size=max(1, len(opt.gpu_ids)),
         shuffle=not opt.serial_batches,
         num_workers=int(opt.nThreads),
-        drop_last=False,
+        drop_last=True,  # otherwise data parallel fails
     )
     return dataloader
