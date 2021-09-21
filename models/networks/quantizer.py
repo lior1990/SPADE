@@ -53,14 +53,7 @@ class VectorQuantizer(nn.Module):
 
     def find_closest_encodings_indices(self, z):
         z_flattened = z.view(-1, self.n)
-        # distances from z to embeddings e_j (z - e)^2 = z^2 + e^2 - 2 e * z
-
-        d = torch.sum(z_flattened ** 2, dim=1, keepdim=True) + \
-            torch.sum(self.embedding**2, dim=1) - 2 * \
-            torch.matmul(z_flattened, self.embedding.t())
-
-        # find closest encodings
-        min_encoding_indices = torch.argmin(d, dim=1).unsqueeze(1)
+        min_encoding_indices = z_flattened.argmax(dim=1).unsqueeze(1)
         return min_encoding_indices
 
     def get_quantized_embeddings(self, encoding_indices):
