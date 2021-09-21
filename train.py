@@ -49,6 +49,22 @@ for epoch in iter_counter.training_epochs():
             data_i["image"][:, :, bbx1:bbx2, bby1:bby2] = data_i["image"][batch_index_permutation, :, bbx1:bbx2, bby1:bby2]
             data_i["label"][:, :, bbx1:bbx2, bby1:bby2] = data_i["label"][batch_index_permutation, :, bbx1:bbx2, bby1:bby2]
 
+        for _ in range(opt.n_times_point_cutmix):
+            shape = data_i["image"].shape
+            label_shape = data_i["label"].shape
+            batch_index_permutation = torch.randperm(shape[0])
+            n_points = shape[-1] * shape[-2]
+            data_i["image"] = data_i["image"].reshape(shape[0], -1)
+            data_i["label"] = data_i["label"].reshape(shape[0], -1)
+            mask = torch.randint(0, 3, (n_points,))
+            mask = mask < 1
+            image_mask = mask.repeat(3).numpy()
+            mask = mask.numpy()
+            data_i["image"][:, image_mask] = data_i["image"][batch_index_permutation[:, np.newaxis], image_mask]
+            data_i["image"] = data_i["image"].view(*shape)
+            data_i["label"][:, mask] = data_i["label"][batch_index_permutation[:, np.newaxis], mask]
+            data_i["label"] = data_i["label"].view(*label_shape)
+
         # Training
         # train generator
         if i % opt.D_steps_per_G == 0:
