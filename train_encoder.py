@@ -2,6 +2,7 @@ import os
 from collections import OrderedDict
 
 import torch
+import numpy as np
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 
@@ -107,6 +108,7 @@ for i, img in enumerate(dataloader):
 
         for b in range(generated.shape[0]):
             print(f'process image {i} {b}')
+            print(f"labels for image {i}_{b} are: {np.unique(label_tensor_one_hot[b].cpu().numpy().flatten())}")
             visuals = OrderedDict([('input_label', data_i['label'][b]),
                                    ('synthesized_image', generated[b])])
             visualizer.save_images(webpage, visuals, [f"{i}_{b}.png"])
