@@ -25,7 +25,7 @@ class TrainEncoderOptions(TestOptions):
         parser.add_argument('--n_layers_D', type=int, default=4, help='# layers in each discriminator')
         parser.add_argument('--ndf', type=int, default=64, help='# of discrim filters in first conv layer')
         parser.add_argument('--gan_mode', type=str, default='hinge', help='(ls|original|hinge)')
-
+        parser.add_argument('--lambda_kld', type=float, default=0.05)
 
         parser.set_defaults(dataset_mode="ade_like")
         self.isTrain = False
