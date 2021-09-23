@@ -24,7 +24,12 @@ print(' '.join(sys.argv))
 
 # load the dataset
 dataloader = data.create_dataloader(opt)
-eval_dataloader = data.create_eval_dataloader(opt)
+
+try:
+    eval_dataloader = data.create_eval_dataloader(opt)
+except ValueError:
+    eval_dataloader = None
+    print("Skipping eval dataset")
 
 # create trainer for our model
 trainer = Pix2PixTrainer(opt)
@@ -92,7 +97,7 @@ for epoch in iter_counter.training_epochs():
             trainer.save('latest')
             iter_counter.record_current_iter()
 
-    if epoch % opt.eval_epoch_freq == 0:
+    if epoch % opt.eval_epoch_freq == 0 and eval_dataloader is not None:
         trainer.eval(eval_dataloader, visualizer, epoch, iter_counter.total_steps_so_far)
 
     trainer.update_learning_rate(epoch)
