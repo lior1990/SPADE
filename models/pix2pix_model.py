@@ -29,6 +29,8 @@ class Pix2PixModel(torch.nn.Module):
         if opt.isTrain or load_disc:
             self.criterionGAN = networks.GANLoss(
                 opt.gan_mode, tensor=self.FloatTensor, opt=self.opt)
+            if opt.use_vae:
+                self.KLDLoss = networks.KLDLoss()
 
         if opt.isTrain:
             self.criterionFeat = torch.nn.L1Loss()
@@ -36,8 +38,6 @@ class Pix2PixModel(torch.nn.Module):
                 self.criterionVGG = networks.VGGLoss(self.opt.gpu_ids)
             if not opt.no_labelmix:
                 self.criterionLabelMix = torch.nn.MSELoss()
-            if opt.use_vae:
-                self.KLDLoss = networks.KLDLoss()
 
     # Entry point for all calls involving forward pass
     # of deep networks. We used this approach since DataParallel module
