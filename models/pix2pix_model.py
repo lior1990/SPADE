@@ -15,7 +15,7 @@ class Pix2PixModel(torch.nn.Module):
         networks.modify_commandline_options(parser, is_train)
         return parser
 
-    def __init__(self, opt):
+    def __init__(self, opt, load_disc=False):
         super().__init__()
         self.opt = opt
         self.FloatTensor = torch.cuda.FloatTensor if self.use_gpu() \
@@ -23,12 +23,14 @@ class Pix2PixModel(torch.nn.Module):
         self.ByteTensor = torch.cuda.ByteTensor if self.use_gpu() \
             else torch.ByteTensor
 
-        self.netG, self.netD, self.netE = self.initialize_networks(opt)
+        self.netG, self.netD, self.netE = self.initialize_networks(opt, load_disc)
 
         # set loss functions
-        if opt.isTrain:
+        if opt.isTrain or load_disc:
             self.criterionGAN = networks.GANLoss(
                 opt.gan_mode, tensor=self.FloatTensor, opt=self.opt)
+
+        if opt.isTrain:
             self.criterionFeat = torch.nn.L1Loss()
             if not opt.no_vgg_loss:
                 self.criterionVGG = networks.VGGLoss(self.opt.gpu_ids)
@@ -93,14 +95,14 @@ class Pix2PixModel(torch.nn.Module):
     # Private helper methods
     ############################################################################
 
-    def initialize_networks(self, opt):
+    def initialize_networks(self, opt, load_disc):
         netG = networks.define_G(opt)
-        netD = networks.define_D(opt) if opt.isTrain else None
+        netD = networks.define_D(opt) if (opt.isTrain or load_disc) else None
         netE = networks.define_E(opt) if opt.use_vae else None
 
         if not opt.isTrain or opt.continue_train:
             netG = util.load_network(netG, 'G', opt.which_epoch, opt)
-            if opt.isTrain:
+            if (opt.isTrain or load_disc):
                 netD = util.load_network(netD, 'D', opt.which_epoch, opt)
             if opt.use_vae:
                 netE = util.load_network(netE, 'E', opt.which_epoch, opt)

@@ -32,7 +32,8 @@ dataloader = torch.utils.data.DataLoader(
         drop_last=False
     )
 
-model = Pix2PixModel(opt)
+load_disc = opt.disc_loss_weight > 0
+model = Pix2PixModel(opt, load_disc=load_disc)
 model.eval()
 
 vector_quantizer = VectorQuantizer(opt.label_nc)
@@ -86,9 +87,16 @@ for epoch in range(n_epochs):
                   'path': None,
                   }
 
-        generated = model(data_i, mode='eval')
+        loss = 0
 
-        loss = criterion(generated, img)
+        if load_disc:
+            d_loss, generated = model(data_i, mode="generator")
+            loss += d_loss["GAN"] * opt.disc_loss_weight
+        else:
+            generated = model(data_i, mode="eval")
+
+        loss += criterion(generated, img)
+
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
