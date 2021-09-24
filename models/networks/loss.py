@@ -33,6 +33,8 @@ class GANLoss(nn.Module):
             pass
         elif gan_mode == 'hinge':
             pass
+        elif gan_mode == "wgan":
+            pass
         else:
             raise ValueError('Unexpected gan_mode {}'.format(gan_mode))
 
@@ -74,12 +76,13 @@ class GANLoss(nn.Module):
                 assert target_is_real, "The generator's hinge loss must be aiming for real"
                 loss = -torch.mean(input)
             return loss
-        else:
-            # wgan
+        elif self.gan_mode == "wgan":
             if target_is_real:
                 return -input.mean()
             else:
                 return input.mean()
+        else:
+            raise NotImplementedError(self.gan_mode)
 
     def __call__(self, input, target_is_real, for_discriminator=True):
         # computing loss is a bit complicated because |input| may not be
