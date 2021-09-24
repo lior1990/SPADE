@@ -34,7 +34,8 @@ dataloader = torch.utils.data.DataLoader(
 
 load_disc = opt.disc_loss_weight > 0
 model = Pix2PixModel(opt, load_disc=load_disc)
-model.eval()
+if not opt.no_eval:
+    model.eval()
 
 vector_quantizer = VectorQuantizer(opt.label_nc)
 

@@ -14,6 +14,7 @@ class TrainEncoderOptions(TestOptions):
         parser.add_argument('--loss', type=str, default="l1", help="l1/l2/vgg")
         parser.add_argument('--optimizer', type=str, default="adam", help='adam/sgd')
         parser.add_argument('--lr', type=float, default=0.001, help='initial learning rate for optimizer')
+        parser.add_argument('--no_eval', action='store_true', help='if specified, do *not* use eval()')
 
         # disc
         parser.add_argument('--disc_loss_weight', type=float, default=0)
