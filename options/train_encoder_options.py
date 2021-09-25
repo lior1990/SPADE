@@ -18,6 +18,7 @@ class TrainEncoderOptions(TestOptions):
 
         # disc
         parser.add_argument('--disc_loss_weight', type=float, default=0)
+        parser.add_argument('--d_step_per_rec', type=float, default=1)
         parser.add_argument('--netD', type=str, default='multiscale', help='(n_layers|multiscale|image)')
         parser.add_argument('--netD_subarch', type=str, default='n_layer',
                             help='architecture of each discriminator')

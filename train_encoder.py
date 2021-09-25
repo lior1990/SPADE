@@ -90,7 +90,7 @@ for epoch in range(n_epochs):
 
         loss = 0
 
-        if load_disc:
+        if load_disc and i % opt.d_step_per_rec == 0:
             d_loss, generated = model(data_i, mode="generator")
             loss += d_loss["GAN"] * opt.disc_loss_weight
         else:
