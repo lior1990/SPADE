@@ -84,11 +84,11 @@ for epoch in iter_counter.training_epochs():
         trainer.run_discriminator_one_step(data_i)
 
         if opt.random_labels:
-            new_label_tensor = data_i["label"].clone()  # create a clone so the loop won't make any label disappear
+            new_label_tensor = data_i["label"].long()  # create a clone so the loop won't make any label disappear
             rand_perm = torch.randperm(opt.semantic_nc)
             # assumption: the number of unique labels should be quite small so it's ok to iterate over it
             for orig_label in torch.unique(data_i["label"]):
-                new_value = rand_perm[orig_label]
+                new_value = rand_perm[orig_label.long()]
                 new_label_tensor[data_i["label"] == orig_label] = new_value
 
             data_i["label"] = new_label_tensor
