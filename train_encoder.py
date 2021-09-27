@@ -51,7 +51,6 @@ webpage = html.HTML(web_dir,
 
 n_classes = opt.semantic_nc
 # encoder should get [B, 3, H, W] and output [B, 1, H, W]
-# maybe I can output [B, label_nc, H, W] and skip the scatter inside SPADEGenerator - but this will require converting the discretes to one hot (by argmax)
 encoder = UNet(3, n_classes)
 if opt.optimizer == "adam":
     optimizer = torch.optim.Adam(encoder.parameters(), lr=opt.lr, betas=(0.0, 0.9))

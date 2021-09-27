@@ -40,6 +40,11 @@ iter_counter = IterationCounter(opt, len(dataloader))
 # create tool for visualization
 visualizer = Visualizer(opt)
 
+if opt.random_labels:
+    assert opt.use_vae is False
+    assert opt.no_labelmix is True
+
+
 for epoch in iter_counter.training_epochs():
     iter_counter.record_epoch_start(epoch)
     for i, data_i in enumerate(dataloader, start=iter_counter.epoch_iter):
@@ -77,6 +82,23 @@ for epoch in iter_counter.training_epochs():
 
         # train discriminator
         trainer.run_discriminator_one_step(data_i)
+
+        if opt.random_labels:
+            new_label_tensor = data_i["label"].clone()  # create a clone so the loop won't make any label disappear
+            rand_perm = torch.randperm(opt.semantic_nc)
+            # assumption: the number of unique labels should be quite small so it's ok to iterate over it
+            for orig_label in torch.unique(data_i["label"]):
+                new_value = rand_perm[orig_label]
+                new_label_tensor[data_i["label"] == orig_label] = new_value
+
+            data_i["label"] = new_label_tensor
+
+            if i % opt.D_steps_per_G == 0:
+                trainer.run_generator_one_step(data_i)
+
+            # train discriminator
+            trainer.run_discriminator_one_step(data_i, only_fake=True)
+
 
         # Visualizations
         if iter_counter.needs_printing():
