@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 from data.folder_dataset import FolderDataset
 from models.networks import VGGLoss
 from models.networks.quantizer import VectorQuantizer
+from models.networks.sync_batchnorm import DataParallelWithCallback
 from models.pix2pix_model import Pix2PixModel
 from options.train_encoder_options import TrainEncoderOptions
 from util.visualizer import Visualizer
@@ -34,6 +35,10 @@ dataloader = torch.utils.data.DataLoader(
 
 load_disc = opt.disc_loss_weight > 0
 model = Pix2PixModel(opt, load_disc=load_disc)
+
+if len(opt.gpu_ids) > 0:
+    model = DataParallelWithCallback(model, device_ids=opt.gpu_ids)
+
 if not opt.no_eval:
     model.eval()
 
