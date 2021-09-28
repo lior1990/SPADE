@@ -56,7 +56,8 @@ for i, data_i in enumerate(dataloader):
 
         img_path = data_i['path']
         for b in range(generated.shape[0]):
-            img_name = f"random_label_{img_path[b]}"
+            img_name = os.path.basename(img_path[b])
+            img_name = f"random_label_{img_name}"
             print('process image... %s' % img_name)
             visuals = OrderedDict([('input_label', data_i['label'][b]),
                                    ('synthesized_image', generated[b])])
