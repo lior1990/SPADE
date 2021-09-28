@@ -6,6 +6,8 @@ Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses
 import os
 from collections import OrderedDict
 
+import torch
+
 import data
 from options.test_options import TestOptions
 from models.pix2pix_model import Pix2PixModel
@@ -41,5 +43,24 @@ for i, data_i in enumerate(dataloader):
         visuals = OrderedDict([('input_label', data_i['label'][b]),
                                ('synthesized_image', generated[b])])
         visualizer.save_images(webpage, visuals, img_path[b:b + 1])
+
+    if opt.random_labels:
+        new_label_tensor = data_i["label"].long()
+        rand_perm = torch.randperm(opt.semantic_nc)
+        for orig_label in torch.unique(data_i["label"]):
+            new_value = rand_perm[orig_label.long()]
+            new_label_tensor[data_i["label"] == orig_label] = new_value
+
+        data_i["label"] = new_label_tensor
+        generated = model(data_i, mode='inference')
+
+        img_path = data_i['path']
+        for b in range(generated.shape[0]):
+            img_name = f"random_label_{img_path[b]}"
+            print('process image... %s' % img_name)
+            visuals = OrderedDict([('input_label', data_i['label'][b]),
+                                   ('synthesized_image', generated[b])])
+            visualizer.save_images(webpage, visuals, [img_name])
+
 
 webpage.save()
