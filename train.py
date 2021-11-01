@@ -4,9 +4,14 @@ Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses
 """
 
 import sys
+import numpy as np
 from collections import OrderedDict
+
+import torch
+
 from options.train_options import TrainOptions
 import data
+from util.cutmix import rand_bbox
 from util.iter_counter import IterationCounter
 from util.mix_itertools import mix_dataloaders
 from util.visualizer import Visualizer
@@ -40,6 +45,16 @@ for epoch in iter_counter.training_epochs():
 
         fake_only = train_or_val == "val"
 
+        if not fake_only:
+            for _ in range(opt.n_times_cutmix):
+                lam = np.random.uniform()
+                size = data_i["image"].size()
+                bbx1, bby1, bbx2, bby2 = rand_bbox(size, lam)
+                batch_index_permutation = torch.randperm(size[0])
+
+                data_i["image"][:, :, bbx1:bbx2, bby1:bby2] = data_i["image"][batch_index_permutation, :, bbx1:bbx2, bby1:bby2]
+                data_i["label"][:, :, bbx1:bbx2, bby1:bby2] = data_i["label"][batch_index_permutation, :, bbx1:bbx2, bby1:bby2]
+
         # Training
         # train generator
         if i % opt.D_steps_per_G == 0:
@@ -47,6 +62,23 @@ for epoch in iter_counter.training_epochs():
 
         # train discriminator
         trainer.run_discriminator_one_step(data_i, fake_only)
+
+        if opt.random_labels:
+            random_labels_fake_only = True
+            new_label_tensor = data_i["label"].long()  # create a clone so the loop won't make any label disappear
+            rand_perm = torch.randperm(opt.semantic_nc)
+            # assumption: the number of unique labels should be quite small so it's ok to iterate over it
+            for orig_label in torch.unique(data_i["label"]):
+                new_value = rand_perm[orig_label.long()]
+                new_label_tensor[data_i["label"] == orig_label] = new_value
+
+            data_i["label"] = new_label_tensor
+
+            if i % opt.D_steps_per_G == 0:
+                trainer.run_generator_one_step(data_i, random_labels_fake_only)
+
+            # train discriminator
+            trainer.run_discriminator_one_step(data_i, random_labels_fake_only)
 
         # Visualizations
         if iter_counter.needs_printing():
