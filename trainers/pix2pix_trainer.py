@@ -30,9 +30,9 @@ class Pix2PixTrainer():
                 self.pix2pix_model_on_one_gpu.create_optimizers(opt)
             self.old_lr = opt.lr
 
-    def run_generator_one_step(self, data):
+    def run_generator_one_step(self, data, fake_only):
         self.optimizer_G.zero_grad()
-        g_losses, generated = self.pix2pix_model(data, mode='generator')
+        g_losses, generated = self.pix2pix_model(data, mode='generator', fake_only=fake_only)
         g_loss = sum(g_losses.values()).mean()
         g_loss.backward()
         self.optimizer_G.step()

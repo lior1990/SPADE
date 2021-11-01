@@ -38,13 +38,14 @@ for epoch in iter_counter.training_epochs():
     for i, (data_i, train_or_val) in enumerate(mix_dataloaders(dataloader, val_dataloader), start=iter_counter.epoch_iter):
         iter_counter.record_one_iteration()
 
+        fake_only = train_or_val == "val"
+
         # Training
         # train generator
         if i % opt.D_steps_per_G == 0:
-            trainer.run_generator_one_step(data_i)
+            trainer.run_generator_one_step(data_i, fake_only)
 
         # train discriminator
-        fake_only = train_or_val == "val"
         trainer.run_discriminator_one_step(data_i, fake_only)
 
         # Visualizations
