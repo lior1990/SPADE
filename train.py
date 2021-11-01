@@ -8,6 +8,7 @@ from collections import OrderedDict
 from options.train_options import TrainOptions
 import data
 from util.iter_counter import IterationCounter
+from util.mix_itertools import mix_dataloaders
 from util.visualizer import Visualizer
 from trainers.pix2pix_trainer import Pix2PixTrainer
 
@@ -19,19 +20,22 @@ print(' '.join(sys.argv))
 
 # load the dataset
 dataloader = data.create_dataloader(opt)
+opt.phase = "test"
+val_dataloader = data.create_dataloader(opt)
+opt.phase = "train"
 
 # create trainer for our model
 trainer = Pix2PixTrainer(opt)
 
 # create tool for counting iterations
-iter_counter = IterationCounter(opt, len(dataloader))
+iter_counter = IterationCounter(opt, len(dataloader) + len(val_dataloader))
 
 # create tool for visualization
 visualizer = Visualizer(opt)
 
 for epoch in iter_counter.training_epochs():
     iter_counter.record_epoch_start(epoch)
-    for i, data_i in enumerate(dataloader, start=iter_counter.epoch_iter):
+    for i, (data_i, train_or_val) in enumerate(mix_dataloaders(dataloader, val_dataloader), start=iter_counter.epoch_iter):
         iter_counter.record_one_iteration()
 
         # Training
@@ -40,7 +44,8 @@ for epoch in iter_counter.training_epochs():
             trainer.run_generator_one_step(data_i)
 
         # train discriminator
-        trainer.run_discriminator_one_step(data_i)
+        fake_only = train_or_val == "val"
+        trainer.run_discriminator_one_step(data_i, fake_only)
 
         # Visualizations
         if iter_counter.needs_printing():
