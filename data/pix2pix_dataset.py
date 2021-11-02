@@ -52,7 +52,7 @@ class Pix2pixDataset(BaseDataset):
     def paths_match(self, path1, path2):
         filename1_without_ext = os.path.splitext(os.path.basename(path1))[0]
         filename2_without_ext = os.path.splitext(os.path.basename(path2))[0]
-        return filename1_without_ext == filename2_without_ext
+        return filename1_without_ext.startswith(filename2_without_ext)
 
     def __getitem__(self, index):
         # Label Image

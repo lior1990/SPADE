@@ -2,6 +2,7 @@
 Copyright (C) 2019 NVIDIA Corporation.  All rights reserved.
 Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
 """
+import os
 
 from data.pix2pix_dataset import Pix2pixDataset
 from data.image_folder import make_dataset
@@ -19,7 +20,7 @@ class ADE20KDataset(Pix2pixDataset):
             parser.set_defaults(load_size=256)
         parser.set_defaults(crop_size=256)
         parser.set_defaults(display_winsize=256)
-        parser.set_defaults(label_nc=15)
+        parser.set_defaults(label_nc=26)
         parser.set_defaults(contain_dontcare_label=False)
         parser.set_defaults(cache_filelist_read=False)
         parser.set_defaults(cache_filelist_write=False)
@@ -42,6 +43,14 @@ class ADE20KDataset(Pix2pixDataset):
                 label_paths.append(p)
 
         instance_paths = []  # don't use instance map for ade20k
+
+        if len(label_paths) != len(image_paths) and phase == "validation":
+            images_folder = os.path.split(image_paths[0])[0]
+            image_paths = []
+            for label_path in label_paths:
+                corresponding_img_name = os.path.basename(label_path)
+                corresponding_img_name = f"{'_'.join(corresponding_img_name.split('_')[:-2])}.jpg"
+                image_paths.append(os.path.join(images_folder,corresponding_img_name))
 
         return label_paths, image_paths, instance_paths
 
