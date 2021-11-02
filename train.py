@@ -4,6 +4,8 @@ Licensed under the CC BY-NC-SA 4.0 license (https://creativecommons.org/licenses
 """
 
 import sys
+from random import random
+
 import numpy as np
 from collections import OrderedDict
 
@@ -45,7 +47,7 @@ for epoch in iter_counter.training_epochs():
 
         fake_only = train_or_val == "val"
 
-        if not fake_only:
+        if not fake_only and random() > (1-opt.cutmix_prob):
             for _ in range(opt.n_times_cutmix):
                 lam = np.random.uniform()
                 size = data_i["image"].size()
